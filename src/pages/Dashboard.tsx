@@ -3,14 +3,13 @@ import { Clock, Calendar, TrendingUp, Users, Activity, Bell } from 'lucide-react
 import { format } from 'date-fns'
 import { useAuthStore } from '@/stores/authStore'
 import { useShiftStore } from '@/stores/shiftStore'
-import { useCheckInStore } from '@/stores/checkInStore'
+
 import { useLanguageStore } from '@/stores/languageStore'
 import { mockNotifications } from '@/lib/mock-data'
 
 export default function Dashboard() {
   const { user } = useAuthStore()
   const { shifts } = useShiftStore()
-  const { currentCheckIn } = useCheckInStore()
   const { t } = useLanguageStore()
   const [notifications] = useState(mockNotifications)
 
@@ -46,9 +45,7 @@ export default function Dashboard() {
     { id: 3, action: 'Time off requested', time: new Date(Date.now() - 24 * 60 * 60 * 1000), location: 'Admin' },
   ]
 
-  const formatTime = (date: Date) => {
-    return format(date, 'MMM d')
-  }
+
 
   return (
     <div className="px-4 py-6 sm:px-0">

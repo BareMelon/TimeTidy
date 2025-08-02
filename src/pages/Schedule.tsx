@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, Clock, User, Filter } from 'lucide-react'
 import { format } from 'date-fns'
 import CalendarView from '@/components/CalendarView'
 import ShiftModal from '@/components/ShiftModal'
 import ShiftSwapModal from '@/components/ShiftSwapModal'
 import { usePermissions } from '@/hooks/usePermissions'
-import { useAuthStore } from '@/stores/authStore'
+
 import { useToast } from '@/components/Toast'
 import { useShiftStore } from '@/stores/shiftStore'
 import { useLanguageStore } from '@/stores/languageStore'
@@ -18,18 +18,22 @@ export default function Schedule() {
   const [showShiftSwapModal, setShowShiftSwapModal] = useState(false)
   const [filterRole, setFilterRole] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('')
-  const { user } = useAuthStore()
   const { canViewAllShifts } = usePermissions()
-  const { shifts: storeShifts, updateShift } = useShiftStore()
+  const { shifts: storeShifts, updateShift, fetchShifts, isLoading, error } = useShiftStore()
   const { success } = useToast()
   const { t } = useLanguageStore()
+
+  // Fetch shifts on component mount
+  useEffect(() => {
+    fetchShifts()
+  }, [fetchShifts])
 
   const handleShiftClick = (shift: Shift) => {
     setSelectedShift(shift)
     setShowShiftModal(true)
   }
 
-  const handleRequestTimeOff = (shiftId: string) => {
+  const handleRequestTimeOff = () => {
     // Close shift modal and open time off request modal for this specific shift
     setShowShiftModal(false)
     // In a real app, this would open a time off request modal for the specific shift
@@ -37,7 +41,7 @@ export default function Schedule() {
     success('Time off request form would open here for the selected shift')
   }
 
-  const handleRequestSwap = (shiftId: string) => {
+  const handleRequestSwap = () => {
     setShowShiftModal(false)
     setShowShiftSwapModal(true)
   }
@@ -53,7 +57,7 @@ export default function Schedule() {
     success(`Shift ${shiftId} has been cancelled`)
   }
 
-  const handleSwapRequested = (swapData: any) => {
+  const handleSwapRequested = () => {
     // In a real app, this would be added to the pending approvals in the backend
     // For now, we'll just show success feedback
     setShowShiftSwapModal(false)
@@ -72,15 +76,40 @@ export default function Schedule() {
 
 
 
-  // If we have no shifts at all, show a loading or error state
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="px-4 py-6 sm:px-0">
+        <div className="text-center py-8">
+          <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4 animate-spin" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('common.loading')}</h3>
+          <p className="text-gray-500">{t('schedule.loadingShifts')}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="px-4 py-6 sm:px-0">
+        <div className="text-center py-8">
+          <Calendar className="w-12 h-12 mx-auto text-red-400 mb-4" />
+          <h3 className="text-lg font-medium text-red-900 mb-2">{t('common.error')}</h3>
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If we have no shifts at all, show empty state
   if (!storeShifts || storeShifts.length === 0) {
     return (
       <div className="px-4 py-6 sm:px-0">
         <div className="text-center py-8">
           <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No shifts available</h3>
-          <p className="text-gray-500">The shift store appears to be empty.</p>
-          <p className="text-sm text-gray-400 mt-2">Store shifts length: {storeShifts?.length || 0}</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('schedule.noShifts')}</h3>
+          <p className="text-gray-500">{t('schedule.noShiftsDescription')}</p>
         </div>
       </div>
     )

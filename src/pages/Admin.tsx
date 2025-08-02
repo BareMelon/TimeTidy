@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Users, Calendar, Settings, FileText, Plus, UserPlus } from 'lucide-react'
-import { usePermissions } from '@/hooks/usePermissions'
-import { mockShiftSwaps, mockTimeOffRequests, getPendingApprovals, getUserTimeOffStatus } from '@/lib/mock-data'
+
+import { getPendingApprovals, getUserTimeOffStatus } from '@/lib/mock-data'
 import { format } from 'date-fns'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import CreateUserModal from '@/components/CreateUserModal'
@@ -17,11 +17,10 @@ function AdminContent() {
   const [activeTab, setActiveTab] = useState('users')
   const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false)
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [userCreationType, setUserCreationType] = useState<'temporary' | 'permanent'>('temporary')
+  const [_editingUser, setEditingUser] = useState<User | null>(null)
+  const [_userCreationType, setUserCreationType] = useState<'temporary' | 'permanent'>('temporary')
   const [pendingApprovals, setPendingApprovals] = useState(getPendingApprovals())
-  const { canManageUsers } = usePermissions()
-  const { success, error } = useToast()
+  const { success } = useToast()
   const { users, updateUser, deleteUser, addUser } = useUserStore()
   const { t } = useLanguageStore()
 

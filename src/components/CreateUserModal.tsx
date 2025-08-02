@@ -3,9 +3,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { X, User, UserPlus, Copy, Check } from 'lucide-react'
-import { UserRole } from '@/types'
-import { createTempUser, createEmployee, validateEmployeeData, generateTempUsername, generateTempPassword } from '@/utils/userGeneration'
-import { useToast } from '@/components/Toast'
+import { createTempUser, createEmployee, validateEmployeeData, generateTempPassword } from '@/utils/userGeneration'
+
 import { useLanguageStore } from '@/stores/languageStore'
 
 const createUserSchema = z.object({
@@ -34,7 +33,7 @@ interface CreateUserModalProps {
 }
 
 export default function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserModalProps) {
-  const { success } = useToast()
+
   const { t } = useLanguageStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copiedField, setCopiedField] = useState<string | null>(null)

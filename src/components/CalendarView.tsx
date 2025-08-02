@@ -11,7 +11,7 @@ import {
   subMonths 
 } from 'date-fns'
 import { Shift } from '@/types'
-import { getLocationById } from '@/lib/mock-data'
+
 import { useLanguageStore } from '@/stores/languageStore'
 
 interface CalendarViewProps {

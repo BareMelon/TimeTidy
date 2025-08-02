@@ -27,7 +27,7 @@ interface PasswordResetModalProps {
 }
 
 export default function PasswordResetModal({ isOpen }: PasswordResetModalProps) {
-  const { resetPassword } = useAuthStore()
+  const { resetPassword, user } = useAuthStore()
   const { success, error } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -37,7 +37,6 @@ export default function PasswordResetModal({ isOpen }: PasswordResetModalProps) 
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<PasswordResetForm>({
     resolver: zodResolver(passwordResetSchema),
   })

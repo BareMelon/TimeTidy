@@ -58,6 +58,9 @@ const translations = {
     'schedule.cancelled': 'Cancelled',
     'schedule.completed': 'Completed',
     'schedule.noShow': 'No Show',
+    'schedule.loadingShifts': 'Loading shifts...',
+    'schedule.noShifts': 'No shifts available',
+    'schedule.noShiftsDescription': 'There are no shifts scheduled at this time.',
     
     // Calendar
     'calendar.today': 'Today',
@@ -254,6 +257,9 @@ const translations = {
     'schedule.cancelled': 'Aflyst',
     'schedule.completed': 'Afsluttet',
     'schedule.noShow': 'Ikke mødt op',
+    'schedule.loadingShifts': 'Indlæser vagter...',
+    'schedule.noShifts': 'Ingen vagter tilgængelige',
+    'schedule.noShiftsDescription': 'Der er ingen vagter planlagt på dette tidspunkt.',
     
     // Calendar
     'calendar.today': 'I dag',

@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      resetPassword: async (newPassword: string) => {
+      resetPassword: async () => {
         set({ isLoading: true })
         
         // Mock password reset

@@ -21,7 +21,6 @@ export function generateTempPassword(): string {
  */
 export function createTempUser(overrides?: Partial<User>): Omit<User, 'id' | 'createdAt' | 'updatedAt'> {
   const username = generateTempUsername()
-  const now = new Date()
   
   return {
     username,

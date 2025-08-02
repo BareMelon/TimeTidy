@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { Eye, EyeOff, LogIn } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useLanguageStore } from '@/stores/languageStore'
-import { authenticateUser } from '@/lib/mock-data'
+
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),

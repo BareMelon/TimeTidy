@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Calculator, DollarSign, Clock, TrendingUp, FileText } from 'lucide-react'
-import { format, startOfMonth, endOfMonth } from 'date-fns'
+import { format } from 'date-fns'
 
 interface PayrollEntry {
   userId: string

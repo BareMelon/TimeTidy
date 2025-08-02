@@ -1,37 +1,22 @@
 import { 
   User, 
+  Location, 
   Shift, 
   CheckIn, 
   ShiftSwap, 
   TimeOffRequest,
+  DashboardStats,
   ApiResponse,
-  PaginatedResponse,
   LoginForm,
   CreateUserForm,
   CreateShiftForm,
   SwapRequestForm,
   TimeOffRequestForm,
-  ShiftFilters,
   UserFilters,
-  DashboardStats
+  ShiftFilters
 } from '@/types'
 
-import {
-  mockUsers,
-  mockShifts,
-  mockCheckIns,
-  mockShiftSwaps,
-  mockTimeOffRequests,
-  mockDashboardStats,
-  mockNotifications,
-  mockLocations,
-  mockPayrollAddOns
-} from './mock-data'
-
-// Mock API delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-// Mock API base URL
+// API base URL
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api'
 
 // API client class
@@ -56,107 +41,61 @@ class ApiClient {
     }
 
     try {
-      // Mock API - simulate network delay
-      await delay(300)
+      const response = await fetch(`${this.baseURL}/${endpoint}`, {
+        ...options,
+        headers,
+      })
 
-      // For demo purposes, return mock data instead of making real requests
-      return this.mockResponse<T>(endpoint, options)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data
     } catch (error) {
+      console.error('API Error:', error)
       throw new Error(`API Error: ${error}`)
     }
   }
 
-  private mockResponse<T>(endpoint: string, options: RequestInit): ApiResponse<T> {
-    const method = options.method || 'GET'
-    const [resource] = endpoint.split('/').filter(Boolean)
-
-    // Mock authentication
-    if (endpoint === 'auth/login') {
-      this.authToken = 'mock-jwt-token'
-      localStorage.setItem('auth-token', this.authToken)
-      return {
-        data: mockUsers[1] as T, // Return John Doe
-        success: true,
-        message: 'Login successful'
-      }
-    }
-
-    if (endpoint === 'auth/logout') {
-      this.authToken = null
-      localStorage.removeItem('auth-token')
-      return {
-        data: null as T,
-        success: true,
-        message: 'Logout successful'
-      }
-    }
-
-    // Mock resource endpoints
-    switch (resource) {
-      case 'users':
-        if (method === 'GET') {
-          return { data: mockUsers as T, success: true }
-        }
-        if (method === 'POST') {
-          const newUser = { id: Date.now().toString(), ...JSON.parse(options.body as string) }
-          return { data: newUser as T, success: true }
-        }
-        break
-
-      case 'shifts':
-        if (method === 'GET') {
-          return { data: mockShifts as T, success: true }
-        }
-        if (method === 'POST') {
-          const newShift = { id: Date.now().toString(), ...JSON.parse(options.body as string) }
-          return { data: newShift as T, success: true }
-        }
-        break
-
-      case 'checkins':
-        if (method === 'GET') {
-          return { data: mockCheckIns as T, success: true }
-        }
-        if (method === 'POST') {
-          const newCheckIn = { id: Date.now().toString(), ...JSON.parse(options.body as string) }
-          return { data: newCheckIn as T, success: true }
-        }
-        break
-
-      case 'dashboard':
-        return { data: mockDashboardStats as T, success: true }
-
-      default:
-        return { data: [] as T, success: true }
-    }
-
-    return { data: [] as T, success: true }
-  }
-
-  // Authentication endpoints
+  // Authentication methods
   async login(credentials: LoginForm): Promise<ApiResponse<User>> {
-    return this.request<User>('auth/login', {
+    const response = await this.request<User>('auth/login', {
       method: 'POST',
-      body: JSON.stringify(credentials),
+      body: JSON.stringify(credentials)
     })
+    
+    if (response.success && response.data) {
+      this.authToken = 'mock-jwt-token' // In real app, this would come from response
+      localStorage.setItem('auth-token', this.authToken)
+    }
+    
+    return response
   }
 
   async logout(): Promise<ApiResponse<null>> {
-    return this.request<null>('auth/logout', {
-      method: 'POST',
+    const response = await this.request<null>('auth/logout', {
+      method: 'POST'
     })
+    
+    this.authToken = null
+    localStorage.removeItem('auth-token')
+    
+    return response
   }
 
   async refreshToken(): Promise<ApiResponse<{ token: string }>> {
     return this.request<{ token: string }>('auth/refresh', {
-      method: 'POST',
+      method: 'POST'
     })
   }
 
-  // User endpoints
+  // User methods
   async getUsers(filters?: UserFilters): Promise<ApiResponse<User[]>> {
-    const queryParams = filters ? `?${new URLSearchParams(filters as any)}` : ''
-    return this.request<User[]>(`users${queryParams}`)
+    const queryParams = filters ? new URLSearchParams(filters as any).toString() : ''
+    const endpoint = queryParams ? `users?${queryParams}` : 'users'
+    return this.request<User[]>(endpoint)
   }
 
   async getUserById(id: string): Promise<ApiResponse<User>> {
@@ -166,27 +105,28 @@ class ApiClient {
   async createUser(userData: CreateUserForm): Promise<ApiResponse<User>> {
     return this.request<User>('users', {
       method: 'POST',
-      body: JSON.stringify(userData),
+      body: JSON.stringify(userData)
     })
   }
 
   async updateUser(id: string, userData: Partial<User>): Promise<ApiResponse<User>> {
     return this.request<User>(`users/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(userData),
+      body: JSON.stringify(userData)
     })
   }
 
   async deleteUser(id: string): Promise<ApiResponse<null>> {
     return this.request<null>(`users/${id}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     })
   }
 
-  // Shift endpoints
+  // Shift methods
   async getShifts(filters?: ShiftFilters): Promise<ApiResponse<Shift[]>> {
-    const queryParams = filters ? `?${new URLSearchParams(filters as any)}` : ''
-    return this.request<Shift[]>(`shifts${queryParams}`)
+    const queryParams = filters ? new URLSearchParams(filters as any).toString() : ''
+    const endpoint = queryParams ? `shifts?${queryParams}` : 'shifts'
+    return this.request<Shift[]>(endpoint)
   }
 
   async getShiftById(id: string): Promise<ApiResponse<Shift>> {
@@ -196,139 +136,133 @@ class ApiClient {
   async createShift(shiftData: CreateShiftForm): Promise<ApiResponse<Shift>> {
     return this.request<Shift>('shifts', {
       method: 'POST',
-      body: JSON.stringify(shiftData),
+      body: JSON.stringify(shiftData)
     })
   }
 
   async updateShift(id: string, shiftData: Partial<Shift>): Promise<ApiResponse<Shift>> {
     return this.request<Shift>(`shifts/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(shiftData),
+      body: JSON.stringify(shiftData)
     })
   }
 
   async deleteShift(id: string): Promise<ApiResponse<null>> {
     return this.request<null>(`shifts/${id}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     })
   }
 
-  // Check-in endpoints
+  // Check-in methods
   async checkIn(locationId: string, shiftId?: string): Promise<ApiResponse<CheckIn>> {
     return this.request<CheckIn>('checkins', {
       method: 'POST',
-      body: JSON.stringify({ locationId, shiftId, checkInTime: new Date() }),
+      body: JSON.stringify({ locationId, shiftId })
     })
   }
 
   async checkOut(checkInId: string): Promise<ApiResponse<CheckIn>> {
-    return this.request<CheckIn>(`checkins/${checkInId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ checkOutTime: new Date() }),
+    return this.request<CheckIn>(`checkins/${checkInId}/checkout`, {
+      method: 'PUT'
     })
   }
 
   async getCheckIns(filters?: any): Promise<ApiResponse<CheckIn[]>> {
-    const queryParams = filters ? `?${new URLSearchParams(filters)}` : ''
-    return this.request<CheckIn[]>(`checkins${queryParams}`)
+    const queryParams = filters ? new URLSearchParams(filters).toString() : ''
+    const endpoint = queryParams ? `checkins?${queryParams}` : 'checkins'
+    return this.request<CheckIn[]>(endpoint)
   }
 
-  // Shift swap endpoints
+  // Shift swap methods
   async createShiftSwap(swapData: SwapRequestForm): Promise<ApiResponse<ShiftSwap>> {
-    return this.request<ShiftSwap>('shift-swaps', {
+    return this.request<ShiftSwap>('swaps', {
       method: 'POST',
-      body: JSON.stringify(swapData),
+      body: JSON.stringify(swapData)
     })
   }
 
   async approveShiftSwap(id: string, approved: boolean): Promise<ApiResponse<ShiftSwap>> {
-    return this.request<ShiftSwap>(`shift-swaps/${id}/approve`, {
+    return this.request<ShiftSwap>(`swaps/${id}/approve`, {
       method: 'PUT',
-      body: JSON.stringify({ approved }),
+      body: JSON.stringify({ approved })
     })
   }
 
   async getShiftSwaps(): Promise<ApiResponse<ShiftSwap[]>> {
-    return this.request<ShiftSwap[]>('shift-swaps')
+    return this.request<ShiftSwap[]>('swaps')
   }
 
-  // Time off endpoints
+  // Time off methods
   async createTimeOffRequest(requestData: TimeOffRequestForm): Promise<ApiResponse<TimeOffRequest>> {
-    return this.request<TimeOffRequest>('time-off-requests', {
+    return this.request<TimeOffRequest>('timeoff', {
       method: 'POST',
-      body: JSON.stringify(requestData),
+      body: JSON.stringify(requestData)
     })
   }
 
   async approveTimeOffRequest(id: string, approved: boolean): Promise<ApiResponse<TimeOffRequest>> {
-    return this.request<TimeOffRequest>(`time-off-requests/${id}/approve`, {
+    return this.request<TimeOffRequest>(`timeoff/${id}/approve`, {
       method: 'PUT',
-      body: JSON.stringify({ approved }),
+      body: JSON.stringify({ approved })
     })
   }
 
   async getTimeOffRequests(): Promise<ApiResponse<TimeOffRequest[]>> {
-    return this.request<TimeOffRequest[]>('time-off-requests')
+    return this.request<TimeOffRequest[]>('timeoff')
   }
 
-  // Dashboard endpoints
+  // Dashboard methods
   async getDashboardStats(): Promise<ApiResponse<DashboardStats>> {
     return this.request<DashboardStats>('dashboard/stats')
   }
 
-  // Location endpoints
+  // Location methods
   async getLocations(): Promise<ApiResponse<Location[]>> {
     return this.request<Location[]>('locations')
   }
 
-  // Payroll endpoints
+  // Placeholder methods for future features
   async getPayrollAddOns(): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>('payroll/add-ons')
+    return this.request<any[]>('payroll/addons')
   }
 
   async calculatePayroll(userId: string, startDate: string, endDate: string): Promise<ApiResponse<any>> {
     return this.request<any>(`payroll/calculate`, {
       method: 'POST',
-      body: JSON.stringify({ userId, startDate, endDate }),
+      body: JSON.stringify({ userId, startDate, endDate })
     })
   }
 }
 
 // Create and export API client instance
-export const api = new ApiClient(API_BASE_URL)
+export const apiClient = new ApiClient(API_BASE_URL)
 
-// Export individual service functions for easier use
-export const authService = {
-  login: (credentials: LoginForm) => api.login(credentials),
-  logout: () => api.logout(),
-  refreshToken: () => api.refreshToken(),
-}
-
-export const userService = {
-  getUsers: (filters?: UserFilters) => api.getUsers(filters),
-  getUserById: (id: string) => api.getUserById(id),
-  createUser: (userData: CreateUserForm) => api.createUser(userData),
-  updateUser: (id: string, userData: Partial<User>) => api.updateUser(id, userData),
-  deleteUser: (id: string) => api.deleteUser(id),
-}
-
-export const shiftService = {
-  getShifts: (filters?: ShiftFilters) => api.getShifts(filters),
-  getShiftById: (id: string) => api.getShiftById(id),
-  createShift: (shiftData: CreateShiftForm) => api.createShift(shiftData),
-  updateShift: (id: string, shiftData: Partial<Shift>) => api.updateShift(id, shiftData),
-  deleteShift: (id: string) => api.deleteShift(id),
-}
-
-export const checkInService = {
-  checkIn: (locationId: string, shiftId?: string) => api.checkIn(locationId, shiftId),
-  checkOut: (checkInId: string) => api.checkOut(checkInId),
-  getCheckIns: (filters?: any) => api.getCheckIns(filters),
-}
-
-export const dashboardService = {
-  getStats: () => api.getDashboardStats(),
-}
-
-// Default export
-export default api 
+// Export individual methods for convenience
+export const {
+  login,
+  logout,
+  refreshToken,
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  getShifts,
+  getShiftById,
+  createShift,
+  updateShift,
+  deleteShift,
+  checkIn,
+  checkOut,
+  getCheckIns,
+  createShiftSwap,
+  approveShiftSwap,
+  getShiftSwaps,
+  createTimeOffRequest,
+  approveTimeOffRequest,
+  getTimeOffRequests,
+  getDashboardStats,
+  getLocations,
+  getPayrollAddOns,
+  calculatePayroll
+} = apiClient 

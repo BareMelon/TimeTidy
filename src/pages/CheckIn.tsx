@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { Clock, MapPin, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
-import { useAuthStore } from '@/stores/authStore'
+
 import { useCheckInStore } from '@/stores/checkInStore'
 import { useLanguageStore } from '@/stores/languageStore'
 import { useToast } from '@/components/Toast'
 
 export default function CheckIn() {
-  const { user } = useAuthStore()
   const { currentCheckIn, checkIn, checkOut, isCheckedIn } = useCheckInStore()
   const { t } = useLanguageStore()
   const { success, error } = useToast()

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { X, Calendar, Clock, User, Download, Filter } from 'lucide-react'
+import { X, Clock, User, Download, Filter } from 'lucide-react'
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from 'date-fns'
 import { usePermissions } from '@/hooks/usePermissions'
 import { mockUsers } from '@/lib/mock-data'
@@ -46,7 +46,6 @@ export default function TimeReportsModal({ isOpen, onClose }: TimeReportsModalPr
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<ReportFilters>({
     resolver: zodResolver(reportFiltersSchema),

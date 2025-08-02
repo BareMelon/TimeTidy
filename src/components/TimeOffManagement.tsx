@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar, Clock, User, Check, X, MessageSquare, Filter, AlertCircle } from 'lucide-react'
+import { Calendar, Clock, User, Check, X, MessageSquare, Filter } from 'lucide-react'
 import { format } from 'date-fns'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/components/Toast'

@@ -54,7 +54,6 @@ export default function AdminSettings({ className = '' }: AdminSettingsProps) {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
     reset,
   } = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),

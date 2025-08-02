@@ -14,9 +14,9 @@ interface ShiftManagementProps {
 }
 
 export default function ShiftManagement({ className = '' }: ShiftManagementProps) {
-  const { canCreateShifts, canManageShifts } = usePermissions()
+  const { canManageShifts } = usePermissions()
   const { success, error } = useToast()
-  const { shifts, updateShift, deleteShift, addShift, addShifts } = useShiftStore()
+  const { shifts, updateShift, deleteShift, addShift } = useShiftStore()
   const { t } = useLanguageStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
@@ -376,7 +376,7 @@ export default function ShiftManagement({ className = '' }: ShiftManagementProps
             // Create new shift(s)
             if (Array.isArray(newShift)) {
               // Multiple shifts for recurring
-              addShifts(newShift)
+              newShift.forEach(shift => addShift(shift))
             } else {
               // Single shift
               addShift(newShift)
